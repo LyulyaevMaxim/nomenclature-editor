@@ -5,7 +5,7 @@
   "dependencies": {
     "babel-polyfill": "^6.26.0",
     "babel-register": "^6.26.0",
-    "hapi": "^16.1.0",
+    "hapi": "16.5.2",
     "inert": "^4.1.0",
     "pino": "^4.2.1"
   }

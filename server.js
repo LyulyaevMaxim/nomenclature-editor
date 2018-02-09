@@ -1,82 +1,85 @@
-const Hapi = require('hapi');
-const Inert = require('inert');
-const pino = require('pino')();
-const settings = require('./tpl/settings');
+const Hapi = require("hapi");
+const Inert = require("inert");
+const logger = require("pino")();
+const server = new Hapi.Server();
+const prefix = "/";
 
-module.exports = function createServer(config) {
-  return new Promise((resolve) => {
-    const server = new Hapi.Server({ debug: { request: ['*'] } });
+server.connection({
+  port: process.env.PORT || 5000,
+  routes: {
+    cors: true
+  }
+});
 
-    server.connection({ port: config.port });
-
-    server.register(Inert, () => {
-      server.route({
-        method: 'GET',
-        path: '/css/{param*}',
-        handler: {
-          directory: {
-            path: './public/css',
-            redirectToSlash: true,
-            index: true,
-          },
-        },
-      });
-
-      server.route({
-        method: 'GET',
-        path: '/js/{param*}',
-        handler: {
-          directory: {
-            path: './public/js',
-            redirectToSlash: true,
-            index: true,
-          },
-        },
-      });
-
-      server.route({
-        method: 'GET',
-        path: '/img/{param*}',
-        handler: {
-          directory: {
-            path: './public/img',
-            redirectToSlash: true,
-            index: true,
-          },
-        },
-      });
-
-      server.route({
-        method: 'GET',
-        path: '/font/{param*}',
-        handler: {
-          directory: {
-            path: './public/font',
-            redirectToSlash: true,
-            index: true,
-          },
-        },
-      });
-
-      server.route({
-        method: 'GET',
-        path: '/settings/{param*}',
-        handler: (response, reply) => {
-          reply(settings());
-        },
-      });
-
-      server.route({
-        method: ['POST', 'GET', 'PUT'],
-        path: '/{p*}',
-        handler: (request, reply) => {
-          pino.info(request.method, request.url.path, '404');
-          reply().code(404);
-          return null;
-        },
-      });
-
-      resolve(server);
-    });
+server.register(Inert, () => {
+  server.route({
+    method: "GET",
+    path: prefix + "fonts/{param*}",
+    handler: {
+      directory: {
+        path: "./build/fonts",
+        redirectToSlash: true,
+        index: true
+      }
+    }
   });
-};
+
+  server.route({
+    method: "GET",
+    path: prefix + "img.css",
+    handler: {
+      file: "./build/img.css"
+    }
+  });
+
+  server.route({
+    method: "GET",
+    path: prefix + "img/{param*}",
+    handler: {
+      directory: {
+        path: "./build/img/",
+        redirectToSlash: true,
+        index: true
+      }
+    }
+  });
+
+  server.route({
+    method: "GET",
+    path: prefix + "js/{param*}",
+    handler: {
+      directory: {
+        path: "./build/js/",
+        redirectToSlash: true,
+        index: true
+      }
+    }
+  });
+
+  server.route({
+    method: "GET",
+    path: prefix + "css/{param*}",
+    handler: {
+      directory: {
+        path: "./build/css",
+        redirectToSlash: true,
+        index: true
+      }
+    }
+  });
+
+  server.route({
+    method: "GET",
+    path: prefix + "{path*}",
+    handler: {
+      file: "./build/index.html"
+    }
+  });
+
+  server.start(err => {
+    if (err) {
+      throw err;
+    }
+    logger.info("Server running at:", server.info.uri);
+  });
+});
